@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import OnboardingModal from "./components/OnboardingModal";
 import SettingsPanel from "./components/SettingsPanel";
 import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend } from "./lib/config";
@@ -97,7 +98,6 @@ function EffortIcon({ effort }: { effort: string }) {
 type Command = { name: string; description: string; action?: string };
 
 const EFFORT_LEVELS = ["MINIMAL", "LOW", "MEDIUM", "HIGH"] as const;
-type Effort = typeof EFFORT_LEVELS[number];
 
 const COMMANDS: Command[] = [
   { name: "/help",    description: "Show available commands and tips" },
@@ -115,7 +115,7 @@ type MsgKind =
   | { kind: "user"; text: string }
   | { kind: "thinking"; chunks: string[]; done: boolean }
   | { kind: "tool_call"; name: string; args: Record<string, unknown> }
-  | { kind: "tool_result"; name: string; result: string; error?: boolean }
+  | { kind: "tool_result"; name: string; args: Record<string, unknown>; result: string; error?: boolean }
   | { kind: "response"; chunks: string[] }
   | { kind: "system"; text: string }
   | { kind: "error"; text: string };
@@ -250,12 +250,13 @@ const SPINNER_VERBS = [
   'Whirlpooling','Whirring','Whisking','Wibbling','Working','Wrangling','Zesting','Zigzagging',
 ];
 
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
 function WorkingIndicator() {
-  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
   const [f, setF] = useState(0);
   const [verb, setVerb] = useState(() => SPINNER_VERBS[Math.floor(Math.random() * SPINNER_VERBS.length)]);
   useEffect(() => {
-    const t = setInterval(() => setF(i => (i + 1) % frames.length), 80);
+    const t = setInterval(() => setF(i => (i + 1) % SPINNER_FRAMES.length), 80);
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
@@ -264,7 +265,7 @@ function WorkingIndicator() {
   }, []);
   return (
     <div className="working-indicator">
-      <span>{frames[f]}</span>
+      <span>{SPINNER_FRAMES[f]}</span>
       <span>{verb}…</span>
     </div>
   );
@@ -277,7 +278,7 @@ function Welcome({ show }: { show: boolean }) {
   return (
     <div className="welcome-splash">
       <div className="splash-bird">
-        <img src="/logo.svg" width="64" height="64" alt="FreeCode Logo" />
+        <Image src="/logo.svg" width={64} height={64} alt="FreeCode Logo" priority />
       </div>
       <h1 className="splash-title">FREECODE</h1>
       <p className="splash-subtitle">Your personal agentic coding assistant.</p>
@@ -340,6 +341,7 @@ function DirPicker({ onSelect, onBrowse, recents }: { onSelect: (dir: string) =>
           onKeyDown={e => { if (e.key === "Enter") submit(val); }}
           placeholder="C:\path\to\project  (or . for current)"
           autoFocus
+          data-last-active-input=""
         />
         <button className="dir-btn" onClick={() => submit(val)}>Open</button>
         <button className="dir-btn dir-btn-secondary" style={{ marginLeft: 8 }} onClick={onBrowse}>Browse...</button>
@@ -362,7 +364,16 @@ function DirPicker({ onSelect, onBrowse, recents }: { onSelect: (dir: string) =>
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const [messages, setMessages] = useState<MsgKind[]>([]);
+  const [messages, setMessages] = useState<MsgKind[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const id = getOrCreateSessionId();
+      const sessions = JSON.parse(localStorage.getItem("freecode:sessions") || "{}");
+      return sessions[id]?.messages || [];
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
   const [working, setWorking] = useState(false);
@@ -375,14 +386,24 @@ export default function Home() {
   });
   const [effort, setEffort] = useState<typeof EFFORT_LEVELS[number]>("MEDIUM");
   const [paletteIdx, setPaletteIdx] = useState(0);
-  const [workingDir, setWorkingDir] = useState<string | null>(null);
+  const [workingDir, setWorkingDir] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("freecode:working_dir");
+  });
   const [serverRecents, setServerRecents] = useState<string[]>([]);
   const [contextPct, setContextPct] = useState<number | null>(null);
   const [modelPickerOpen, setModelPickerOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sessionSearch, setSessionSearch] = useState("");
-  const [savedSessions, setSavedSessions] = useState<Record<string, { id: string, name: string, updatedAt: number, messages: MsgKind[], workingDir?: string }>>({});
-  const [compactThreshold, setCompactThreshold] = useState(() => {
+  const [savedSessions, setSavedSessions] = useState<Record<string, { id: string, name: string, updatedAt: number, messages: MsgKind[], workingDir?: string }>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      return JSON.parse(localStorage.getItem("freecode:sessions") || "{}");
+    } catch {
+      return {};
+    }
+  });
+  const [compactThreshold] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_THRESHOLD;
     return Number(localStorage.getItem(COMPACT_THRESHOLD_KEY) ?? DEFAULT_THRESHOLD);
   });
@@ -390,7 +411,10 @@ export default function Home() {
     if (typeof window === "undefined") return true;
     return localStorage.getItem(AUTO_COMPACT_KEY) !== "false";
   });
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !getApiKey();
+  });
   const [showSettings, setShowSettings] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -408,16 +432,13 @@ export default function Home() {
   })();
   const paletteOpen = paletteMatches.length > 0;
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Track pending tool calls so we can attach results
   const pendingToolRef = useRef<Map<string, number>>(new Map());
-
-  // Check onboarding status on mount
-  useEffect(() => {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      setShowOnboarding(true);
-    }
-  }, []);
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -493,11 +514,11 @@ export default function Home() {
                 name: block.name,
                 args: block.args,
                 result: msg.result ?? "",
-              } as any;
+              };
             }
             pendingToolRef.current.delete(msg.tool_name);
           } else {
-            next.push({ kind: "tool_result", name: msg.tool_name, result: msg.result ?? "" });
+            next.push({ kind: "tool_result", name: msg.tool_name, args: {}, result: msg.result ?? "" });
           }
           break;
         }
@@ -505,7 +526,11 @@ export default function Home() {
         case "response": {
           // Mark any open thinking as done
           for (let i = next.length - 1; i >= 0; i--) {
-            if (next[i].kind === "thinking") { (next[i] as any).done = true; break; }
+            const block = next[i];
+            if (block.kind === "thinking") {
+              block.done = true;
+              break;
+            }
           }
           const last = next[next.length - 1];
           if (last?.kind === "response") {
@@ -529,7 +554,11 @@ export default function Home() {
         case "done":
           setWorking(false);
           for (let i = next.length - 1; i >= 0; i--) {
-            if (next[i].kind === "thinking") { (next[i] as any).done = true; break; }
+            const block = next[i];
+            if (block.kind === "thinking") {
+              block.done = true;
+              break;
+            }
           }
           if (msg.context_pct != null) {
             setContextPct(msg.context_pct);
@@ -546,47 +575,24 @@ export default function Home() {
     });
 
     setTimeout(scrollToBottom, 20);
-  }, [scrollToBottom]);
 
-  // Persist session messages + working dir
-  useEffect(() => {
-    if (messages.length > 0) {
-      setSavedSessions(prev => {
-        const next = { ...prev };
-        const name = messages.find(m => m.kind === "user")?.text.slice(0, 30) || "New Session";
-        next[sessionId] = {
-          id: sessionId,
-          name: name.length === 30 ? name + "..." : name,
-          updatedAt: Date.now(),
-          messages,
-          workingDir: workingDir ?? undefined,
-        };
-        localStorage.setItem("freecode:sessions", JSON.stringify(next));
-        return next;
-      });
-    }
-  }, [messages, sessionId, workingDir]);
-
-  useEffect(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("freecode:sessions") || "{}");
-      setSavedSessions(data);
-      if (data[sessionId] && messages.length === 0) {
-        setMessages(data[sessionId].messages);
-        // Restore working dir from session
-        if (data[sessionId].workingDir) {
-          setWorkingDir(data[sessionId].workingDir);
-          localStorage.setItem("freecode:working_dir", data[sessionId].workingDir);
-        }
-      }
-    } catch {}
-  }, [sessionId]);
-
-  // Load workingDir from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("freecode:working_dir");
-    if (saved) setWorkingDir(saved);
-  }, []);
+    // Persist to localStorage and update session list (without cascading render)
+    setMessages(msgs => {
+      const firstUserMsg = msgs.find((m): m is Extract<MsgKind, { kind: "user" }> => m.kind === "user");
+      const name = firstUserMsg?.text.slice(0, 30) || "New Session";
+      const sessions = JSON.parse(localStorage.getItem("freecode:sessions") || "{}");
+      sessions[sessionId] = {
+        id: sessionId,
+        name: name.length === 30 ? name + "..." : name,
+        updatedAt: Date.now(),
+        messages: msgs,
+        workingDir: workingDir ?? undefined,
+      };
+      localStorage.setItem("freecode:sessions", JSON.stringify(sessions));
+      setSavedSessions(sessions);
+      return msgs;
+    });
+  }, [scrollToBottom, sessionId, workingDir]);
 
   // Persist settings
   useEffect(() => {
@@ -647,10 +653,10 @@ export default function Home() {
       if (retryTimeout) clearTimeout(retryTimeout);
       wsRef.current?.close();
     };
-  }, [handleServerMessage]);
+  }, [handleServerMessage, sessionId]);
 
-  // Reset palette selection when input changes
-  useEffect(() => { setPaletteIdx(0); }, [input]);
+  // Re-connect logic handled by wsRef and effects below
+
 
   const runCommand = useCallback((rawInput: string) => {
     const name = rawInput.split(" ")[0];
@@ -711,7 +717,23 @@ export default function Home() {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
     setInput("");
     setWorking(true);
-    setMessages(prev => [...prev, { kind: "user", text }]);
+    setMessages(prev => {
+      const next: MsgKind[] = [...prev, { kind: "user", text }];
+      // Sync sessions
+      const firstUserMsg = next.find((m): m is Extract<MsgKind, { kind: "user" }> => m.kind === "user");
+      const name = firstUserMsg?.text.slice(0, 30) || "New Session";
+      const sessions = JSON.parse(localStorage.getItem("freecode:sessions") || "{}");
+      sessions[sessionId] = {
+        id: sessionId,
+        name: name.length === 30 ? name + "..." : name,
+        updatedAt: Date.now(),
+        messages: next,
+        workingDir: workingDir ?? undefined,
+      };
+      localStorage.setItem("freecode:sessions", JSON.stringify(sessions));
+      setSavedSessions(sessions);
+      return next;
+    });
     setTimeout(scrollToBottom, 20);
     wsRef.current.send(JSON.stringify({ type: "user_input", text, effort, working_dir: workingDir ?? ".", model, session_id: sessionId }));
   }, [input, paletteOpen, paletteMatches, paletteIdx, runCommand, scrollToBottom, model, workingDir, effort, sessionId]);
@@ -752,7 +774,7 @@ export default function Home() {
 
       case "thinking":
         return (
-          <div key={i} className="msg msg-assistant">
+          <div key={i} className={`msg msg-assistant${msg.done ? " done" : ""}`}>
             <ThinkingBlock chunks={msg.chunks} done={msg.done} />
           </div>
         );
@@ -768,10 +790,10 @@ export default function Home() {
         return (
           <div key={i} className="msg msg-assistant">
             <ToolBlock
-              name={(msg as any).name}
-              args={(msg as any).args ?? {}}
+              name={msg.name}
+              args={msg.args}
               result={msg.result}
-              resultError={(msg as any).error}
+              resultError={msg.error}
             />
           </div>
         );
@@ -800,6 +822,29 @@ export default function Home() {
       wsRef.current.send(JSON.stringify({ type: "list_sessions", working_dir: dir, session_id: sessionId }));
     }
   };
+
+  if (!isMounted) {
+    return (
+      <div className="app">
+        <div className="main-row">
+          <div className="sidebar-col closed" />
+          <div className="chat-col">
+            <div className="messages-area">
+              <Welcome show={true} />
+            </div>
+            <div className="input-outer">
+              <div className="input-container">
+                <div className="input-box">
+                  <span className="input-prompt divider">│</span>
+                  <input disabled placeholder="Warming up..." />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -954,10 +999,14 @@ export default function Home() {
                   <input
                     ref={inputRef}
                     value={input}
-                    onChange={e => setInput(e.target.value)}
+                    onChange={e => {
+                      setInput(e.target.value);
+                      setPaletteIdx(0);
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder={messages.length === 0 ? "What's the plan?" : ""}
                     autoFocus
+                    data-last-active-input=""
                   />
                   {working && <span className="input-hint">running ▂▄▆</span>}
                   {!working && input === "" && messages.length > 0 && <span className="input-hint ghost">/ for commands · esc to clear</span>}
@@ -993,7 +1042,7 @@ export default function Home() {
           <span className="status-val clickable sidetoggle" onClick={() => setSidebarOpen(s => !s)} title="Toggle sessions sidebar">
             ☰
           </span>
-          <img src="/logo.svg" width="14" height="14" style={{ opacity: 0.5, marginRight: 4 }} alt="" />
+          <Image src="/logo.svg" width={14} height={14} style={{ opacity: 0.5, marginRight: 4 }} alt="" />
           <span className={`status-dot ${connected ? "online" : "offline"}`}>●</span>
           <span className="status-label">freecode v2.0</span>
           <span className="sep">·</span>

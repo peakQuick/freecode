@@ -1,0 +1,501 @@
+
+> freecode@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://26.52.186.58:3000
+✓ Ready in 6.6s
+
+ GET / 200 in 755ms (next.js: 549ms, application-code: 206ms)
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                    <SegmentViewNode type="page" pagePath="page.tsx">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                        <Home params={Promise} searchParams={Promise}>
+                          <div className="app">
+                            <OnboardingModal isOpen={true} ...>
+                              <div
++                               className="OnboardingModal-module__IvNBIG__modalOverlay"
+-                               className="dir-overlay"
+                              >
+                                <div
++                                 className="OnboardingModal-module__IvNBIG__modal"
+-                                 className="dir-box"
+                                >
++                                 <h2 className="OnboardingModal-module__IvNBIG__title">
+-                                 <div className="dir-title">
+                                  ...
+                            ...
+                    ...
+                  ...
+      ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at h2 (<anonymous>)
+    at OnboardingModal (src/app/components/OnboardingModal.tsx:55:9)
+    at Home (src/app/page.tsx:824:7)
+  53 |     <div className={styles.modalOverlay}>
+  54 |       <div className={styles.modal}>
+> 55 |         <h2 className={styles.title}>FreeCode Setup</h2>
+     |         ^
+  56 |
+  57 |         {step === 1 ? (
+  58 |           <div className={styles.step}>
+✓ Compiled in 60ms
+⨯ ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  [90m3 |[0m [36mimport[0m { useEffect, useState, useRef, useCallback } [36mfrom[0m [32m"react"[0m;
+  [90m4 |[0m [36mimport[0m [33mImage[0m [36mfrom[0m [32m"next/image"[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { [33mOnboardingModal[0m } [36mfrom[0m [32m"./components/OnboardingModal"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m [33mSettingsPanel[0m [36mfrom[0m [32m"./components/SettingsPanel"[0m;
+  [90m7 |[0m [36mimport[0m { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ..[36m.[0m
+  [90m8 |[0m
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+
+./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  [90m3 |[0m [36mimport[0m { useEffect, useState, useRef, useCallback } [36mfrom[0m [32m"react"[0m;
+  [90m4 |[0m [36mimport[0m [33mImage[0m [36mfrom[0m [32m"next/image"[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { [33mOnboardingModal[0m } [36mfrom[0m [32m"./components/OnboardingModal"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m [33mSettingsPanel[0m [36mfrom[0m [32m"./components/SettingsPanel"[0m;
+  [90m7 |[0m [36mimport[0m { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ..[36m.[0m
+  [90m8 |[0m
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+ GET / 500 in 3.0s (next.js: 2.9s, application-code: 127ms)
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  [90m3 |[0m [36mimport[0m { useEffect, useState, useRef, useCallback } [36mfrom[0m [32m"react"[0m;
+  [90m4 |[0m [36mimport[0m [33mImage[0m [36mfrom[0m [32m"next/image"[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { [33mOnboardingModal[0m } [36mfrom[0m [32m"./components/OnboardingModal"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m [33mSettingsPanel[0m [36mfrom[0m [32m"./components/SettingsPanel"[0m;
+  [90m7 |[0m [36mimport[0m { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ..[36m.[0m
+  [90m8 |[0m
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+
+./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  [90m3 |[0m [36mimport[0m { useEffect, useState, useRef, useCallback } [36mfrom[0m [32m"react"[0m;
+  [90m4 |[0m [36mimport[0m [33mImage[0m [36mfrom[0m [32m"next/image"[0m;
+[31m[1m>[0m [90m5 |[0m [36mimport[0m { [33mOnboardingModal[0m } [36mfrom[0m [32m"./components/OnboardingModal"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m6 |[0m [36mimport[0m [33mSettingsPanel[0m [36mfrom[0m [32m"./components/SettingsPanel"[0m;
+  [90m7 |[0m [36mimport[0m { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ..[36m.[0m
+  [90m8 |[0m
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+ GET / 500 in 16ms (next.js: 6ms, application-code: 9ms)
+[browser] Uncaught Error: ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:5:1)
+    at <unknown> (Error: (./src/app/page.tsx:5:1)
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-client] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:5:1
+Export OnboardingModal doesn't exist in target module
+  3 | import { useEffect, useState, useRef, useCallback } from "react";
+  4 | import Image from "next/image";
+> 5 | import { OnboardingModal } from "./components/OnboardingModal";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  6 | import SettingsPanel from "./components/SettingsPanel";
+  7 | import { getApiKey, saveApiKey, getSettingsFolder, saveSettingsFolder, sendConfigToBackend ...
+  8 |
+
+The export OnboardingModal was not found in module [project]/src/app/components/OnboardingModal.tsx [app-ssr] (ecmascript).
+Did you mean to import default?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+✓ Compiled in 43ms
+ GET / 200 in 149ms (next.js: 46ms, application-code: 102ms)

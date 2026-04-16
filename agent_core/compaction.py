@@ -25,7 +25,7 @@ async def compact_history(
     client: genai.Client, model: str, messages: list[Message]
 ) -> str:
     """Summarize conversation history using the model."""
-    import asyncio
+    
 
     # Build compaction request
     history_text = "\n\n".join(
