@@ -8,19 +8,19 @@ echo   FREECODE — Production Build
 echo ========================================
 echo.
 
-if not exist "web\package.json" (
-    echo [ERROR] web folder not found!
+if not exist "frontend\package.json" (
+    echo [ERROR] frontend folder not found!
     pause & exit /b 1
 )
 
 echo [1/3] Installing frontend dependencies...
-cd web && call npm install --quiet && cd ..
+cd frontend && call npm install --quiet && cd ..
 
 echo [2/3] Installing backend dependencies...
 python -m pip install -q -r requirements.txt
 
 echo [3/3] Building production bundle...
-cd web && call npm run build && cd ..
+cd frontend && call npm run build && cd ..
 
 echo.
 echo ========================================

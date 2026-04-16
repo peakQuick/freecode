@@ -24,9 +24,9 @@ if ! pip show websockets &>/dev/null; then
     pip install -r requirements.txt || exit 1
 fi
 
-if [ ! -d web/node_modules ]; then
+if [ ! -d frontend/node_modules ]; then
     echo "[setup] Installing Node dependencies..."
-    cd web && npm install || exit 1
+    cd frontend && npm install || exit 1
     cd ..
 fi
 
@@ -41,7 +41,7 @@ echo "Starting FreeCode..."
 $PYTHON -m backend.server &
 BACKEND_PID=$!
 sleep 2
-(cd web && npm run dev) &
+(cd frontend && npm run dev) &
 FRONTEND_PID=$!
 
 echo ""

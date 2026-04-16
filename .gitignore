@@ -24,12 +24,12 @@ dashboard.lock
 # Session data — per-project, never commit
 .freecode/
 
-# Web (Next.js has its own .gitignore in web/)
-web/node_modules/
-web/.next/
-web/out/
-web/.vercel/
-web/next-env.d.ts
+# Frontend (Next.js has its own .gitignore in frontend/)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/next-env.d.ts
 
 # Misc
 .DS_Store

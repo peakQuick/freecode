@@ -17,7 +17,7 @@ backend/             # WebSocket server wrapper
 ├── message_types.py # Protocol definitions
 └── requirements.txt
 
-web/                 # Next.js frontend
+frontend/             # Next.js frontend
 ├── src/app/page.tsx # Main chat UI (Pure React)
 └── ...
 ```
@@ -78,7 +78,7 @@ source venv/Scripts/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Setup frontend
-cd web
+cd frontend
 npm install
 cp .env.local.example .env.local
 ```

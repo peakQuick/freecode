@@ -28,14 +28,14 @@ if not exist venv\Lib\site-packages\webview (
     pip install -r requirements.txt
 )
 
-if not exist web\node_modules (
+if not exist frontend\node_modules (
     echo [setup] Installing Node dependencies...
-    cd web && call npm install && cd ..
+    cd frontend && call npm install && cd ..
 )
 
 :: Build and Server Startup
 echo [1/4] Building Frontend (production)...
-cd web
+cd frontend
 call npm run build > ..\build.log 2>&1
 if errorlevel 1 (
     echo [ERROR] Build failed. Check build.log for details.
@@ -49,7 +49,7 @@ cd ..
 start /b "" venv\Scripts\python.exe -m backend.server > backend.log 2>&1
 
 echo [3/4] Starting Frontend (silent)...
-cd web
+cd frontend
 start /b "" cmd /c "npm run start > ..\frontend.log 2>&1"
 cd ..
 
