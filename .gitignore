@@ -1,0 +1,38 @@
+# Environment — never commit real keys
+.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+
+# Runtime state — use freecode.example.json as template
+freecode.json
+!freecode.example.json
+dashboard.log
+dashboard.lock
+*.lock
+
+# Session data — per-project, never commit
+.freecode/
+
+# Web (Next.js has its own .gitignore in web/)
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+web/next-env.d.ts
+
+# Misc
+.DS_Store
+Thumbs.db
+*.pem
+repomix-output.xml

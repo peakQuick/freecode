@@ -1,0 +1,171 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.panel {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 450px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: #ccc;
+}
+
+.content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.input {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 13px;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: #555;
+}
+
+.input::placeholder {
+  color: #555;
+}
+
+.error {
+  color: #dd6666;
+  font-size: 12px;
+  margin: 0;
+  padding: 8px;
+  background: rgba(221, 102, 102, 0.1);
+  border: 1px solid rgba(221, 102, 102, 0.2);
+  border-radius: 4px;
+}
+
+.success {
+  color: #66dd66;
+  font-size: 12px;
+  margin: 0;
+  padding: 8px;
+  background: rgba(102, 221, 102, 0.1);
+  border: 1px solid rgba(102, 221, 102, 0.2);
+  border-radius: 4px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #1a1a1a;
+}
+
+.buttonPrimary,
+.buttonSecondary {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.buttonPrimary {
+  background: #4a7;
+  color: #000;
+  flex: 1;
+}
+
+.buttonPrimary:hover {
+  background: #5b8;
+}
+
+.buttonSecondary {
+  background: #333;
+  color: #ccc;
+  flex: 1;
+}
+
+.buttonSecondary:hover {
+  background: #444;
+  color: #ddd;
+}
