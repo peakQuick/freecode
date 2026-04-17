@@ -23,15 +23,23 @@ elif [ -f venv/Scripts/activate ]; then source venv/Scripts/activate
 else echo "ERROR: Could not activate venv." && exit 1
 fi
 
-if ! pip show websockets &>/dev/null; then
+# Use the virtual environment Python for the rest of this script.
+PYTHON=$(command -v python)
+
+if ! "$PYTHON" -c "import websockets, webview, qtpy, PyQt6.QtWebEngineCore" &>/dev/null; then
     echo "[setup] Installing Python dependencies..."
-    pip install -q -r requirements.txt || exit 1
+    "$PYTHON" -m pip install -q -r requirements.txt || exit 1
 fi
 
 if [ ! -d frontend/node_modules ]; then
     echo "[setup] Installing Node dependencies..."
     cd frontend && npm install --silent >/dev/null 2>&1 || exit 1
     cd ..
+fi
+
+if [ ! -d frontend/.next ]; then
+    echo "[setup] Building frontend..."
+    (cd frontend && npm run build) || exit 1
 fi
 
 # Write .env.local so NEXT_PUBLIC vars are baked into the production build
@@ -47,7 +55,6 @@ fuser -k ${FC_FRONTEND_PORT}/tcp 2>/dev/null || true
 cleanup() {
     echo ""; echo "Stopping FreeCode..."
     kill $BACKEND_PID $FRONTEND_PID 2>/dev/null
-    exit 0
 }
 trap cleanup SIGINT SIGTERM
 
@@ -57,19 +64,18 @@ mkdir -p logs
 echo "Starting FreeCode..."
 
 export FC_BACKEND_PORT
-$PYTHON -m backend.server > logs/backend.log 2>&1 &
+"$PYTHON" -m backend.server > logs/backend.log 2>&1 &
 BACKEND_PID=$!
 sleep 2
 
 (cd frontend && npm start -- -p ${FC_FRONTEND_PORT}) > logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 
-echo ""
-echo "  Frontend:  http://localhost:${FC_FRONTEND_PORT}"
-echo "  Backend:   ws://localhost:${FC_BACKEND_PORT}"
-echo "  Logs:      logs/backend.log, logs/frontend.log"
-echo ""
-echo "Press Ctrl+C to stop"
-echo ""
+sleep 5
 
-wait $BACKEND_PID $FRONTEND_PID
+echo ""
+echo "Launching FreeCode window..."
+"$PYTHON" scripts/run_webview.py
+
+cleanup
+exit 0
