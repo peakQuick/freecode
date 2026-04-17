@@ -61,7 +61,7 @@ $PYTHON -m backend.server > logs/backend.log 2>&1 &
 BACKEND_PID=$!
 sleep 2
 
-(cd frontend && npm start -- -p ${FC_FRONTEND_PORT}) > ../logs/frontend.log 2>&1 &
+(cd frontend && npm start -- -p ${FC_FRONTEND_PORT}) > logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 echo ""
