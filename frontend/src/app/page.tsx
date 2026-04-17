@@ -318,6 +318,7 @@ function ModelPicker({ current, onSelect, onClose }: { current: string; onSelect
 
 // ── Directory Picker ─────────────────────────────────────────────────────────
 
+
 function DirPicker({ onSelect, onBrowse, recents }: { onSelect: (dir: string) => void; onBrowse: () => void; recents: string[] }) {
   const [val, setVal] = useState("");
   // Merge locally stored recents with server recents
@@ -328,6 +329,20 @@ function DirPicker({ onSelect, onBrowse, recents }: { onSelect: (dir: string) =>
     const d = dir.trim() || ".";
     saveRecentDir(d);
     onSelect(d);
+  };
+
+  const handleBrowse = async () => {
+    if (window.pywebview?.api?.pick_folder) {
+      // Running inside pywebview — use native dialog
+      const picked = await window.pywebview.api.pick_folder();
+      if (picked) {
+        setVal(picked);
+        submit(picked);
+      }
+    } else {
+      // Fallback: let the parent handle it (WebSocket pick_dir)
+      onBrowse();
+    }
   };
 
   return (
@@ -344,7 +359,7 @@ function DirPicker({ onSelect, onBrowse, recents }: { onSelect: (dir: string) =>
           data-last-active-input=""
         />
         <button className="dir-btn" onClick={() => submit(val)}>Open</button>
-        <button className="dir-btn dir-btn-secondary" style={{ marginLeft: 8 }} onClick={onBrowse}>Browse...</button>
+        <button className="dir-btn dir-btn-secondary" style={{ marginLeft: 8 }} onClick={handleBrowse}>Browse...</button>
         {allRecents.length > 0 && (
           <>
             <div className="dir-recents-label">Recent folders</div>
@@ -444,11 +459,29 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
+  const [onboardingFolderPickerCallback, setOnboardingFolderPickerCallback] = useState<((path: string) => void) | null>(null);
+
+  const handleBrowseSettingsFolder = useCallback((): Promise<string> => {
+    return new Promise((resolve) => {
+      setOnboardingFolderPickerCallback(() => (path: string) => {
+        setOnboardingFolderPickerCallback(null);
+        resolve(path);
+      });
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: "pick_folder", session_id: sessionId }));
+      }
+    });
+  }, [sessionId]);
+
   const handleOnboardingComplete = useCallback(async (apiKey: string, settingsFolder: string) => {
     saveApiKey(apiKey);
     saveSettingsFolder(settingsFolder);
     await sendConfigToBackend(apiKey, settingsFolder);
     setShowOnboarding(false);
+    // Reconnect WebSocket so backend picks up the new API key for fresh sessions
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
   }, []);
 
   const handleServerMessage = useCallback((raw: string) => {
@@ -457,6 +490,10 @@ export default function Home() {
     // Non-chat protocol messages — handle without touching setMessages
     if (msg.type === "hello") {
       if (msg.recent_dirs) setServerRecents(msg.recent_dirs);
+      return;
+    }
+    if (msg.type === "folder_picked") {
+      setOnboardingFolderPickerCallback((cb: ((path: string) => void) | null) => { cb?.(msg.path || ""); return null; });
       return;
     }
     if (msg.type === "session") {
@@ -543,7 +580,10 @@ export default function Home() {
 
         case "system": {
           const text = msg.message ?? "";
-          next.push({ kind: "system", text });
+          // Skip init announcements — they're noise, not conversation
+          if (!text.startsWith("Working directory: ") && text !== "pong") {
+            next.push({ kind: "system", text });
+          }
           if (text.startsWith("Working directory: ")) {
             const dir = text.replace("Working directory: ", "").trim();
             setWorkingDir(dir);
@@ -852,6 +892,7 @@ export default function Home() {
       <OnboardingModal
         isOpen={showOnboarding}
         onComplete={handleOnboardingComplete}
+        onBrowse={handleBrowseSettingsFolder}
         initialApiKey={getApiKey() || ""}
         initialSettingsFolder={getSettingsFolder() || ""}
       />
@@ -871,8 +912,8 @@ export default function Home() {
         />
       )}
 
-      {/* Directory picker overlay — shown until a dir is chosen */}
-      {workingDir === null && (
+      {/* Directory picker overlay — shown after onboarding, until a dir is chosen */}
+      {workingDir === null && !showOnboarding && (
         <DirPicker
           onSelect={handleDirSelect}
           onBrowse={() => {
@@ -1042,7 +1083,6 @@ export default function Home() {
           <span className="status-val clickable sidetoggle" onClick={() => setSidebarOpen(s => !s)} title="Toggle sessions sidebar">
             ☰
           </span>
-          <Image src="/logo.svg" width={14} height={14} style={{ opacity: 0.5, marginRight: 4 }} alt="" />
           <span className={`status-dot ${connected ? "online" : "offline"}`}>●</span>
           <span className="status-label">freecode v2.0</span>
           <span className="sep">·</span>

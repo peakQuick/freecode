@@ -6,45 +6,53 @@ import styles from "./OnboardingModal.module.css";
 interface OnboardingModalProps {
   isOpen: boolean;
   onComplete: (apiKey: string, settingsFolder: string) => void;
+  onBrowse?: () => Promise<string>;
   initialApiKey?: string;
   initialSettingsFolder?: string;
+}
+
+function getDefaultSettingsFolder(): string {
+  if (typeof window === "undefined") return "~/.freecode";
+  // Try to detect OS from userAgent
+  const isWindows = navigator.userAgent.includes("Windows");
+  if (isWindows) {
+    return "%USERPROFILE%\\.freecode";
+  }
+  return "~/.freecode";
 }
 
 export default function OnboardingModal({
   isOpen,
   onComplete,
+  onBrowse,
   initialApiKey = "",
   initialSettingsFolder = "",
 }: OnboardingModalProps) {
-  const [step, setStep] = useState(1);
   const [apiKey, setApiKey] = useState(initialApiKey);
-  const [settingsFolder, setSettingsFolder] = useState(initialSettingsFolder);
+  const [settingsFolder, setSettingsFolder] = useState(
+    initialSettingsFolder || getDefaultSettingsFolder()
+  );
   const [error, setError] = useState("");
+  const [browsing, setBrowsing] = useState(false);
 
-  const handleNext = () => {
-    if (step === 1) {
-      if (!apiKey.trim()) {
-        setError("API Key is required");
-        return;
-      }
-      setError("");
-      setStep(2);
+  const handleBrowse = async () => {
+    if (!onBrowse) return;
+    setBrowsing(true);
+    try {
+      const path = await onBrowse();
+      if (path) setSettingsFolder(path);
+    } finally {
+      setBrowsing(false);
     }
   };
 
   const handleComplete = () => {
-    if (!settingsFolder.trim()) {
-      setError("Settings folder is required");
+    if (!apiKey.trim()) {
+      setError("API Key is required");
       return;
     }
     setError("");
     onComplete(apiKey, settingsFolder);
-  };
-
-  const handleFolderBrowse = async () => {
-    // This will be handled by the parent or a native dialog
-    // For now, we'll rely on user typing
-    // TODO: integrate with file picker if available
   };
 
   if (!isOpen) return null;
@@ -52,12 +60,20 @@ export default function OnboardingModal({
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
-        <h2 className={styles.title}>FreeCode Setup</h2>
+        <div className={styles.onboardingHeader}>
+          <h2 className={styles.title}>Welcome to FreeCode</h2>
+          <p className={styles.subtitle}>Let's get you set up in seconds.</p>
+        </div>
 
-        {step === 1 ? (
-          <div className={styles.step}>
-            <label className={styles.label}>API Key</label>
-            <p className={styles.description}>Enter your Gemini API key from https://aistudio.google.com</p>
+        <div className={styles.step}>
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Gemini API Key</label>
+            <p className={styles.description}>
+              FreeCode uses Gemini for reasoning. Get your free key from{" "}
+              <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" className={styles.link}>
+                Google AI Studio
+              </a>
+            </p>
             <input
               type="password"
               value={apiKey}
@@ -65,48 +81,50 @@ export default function OnboardingModal({
                 setApiKey(e.target.value);
                 setError("");
               }}
-              placeholder="paste your API key here"
+              onKeyDown={(e) => e.key === "Enter" && handleComplete()}
+              placeholder="Paste your API key here..."
               className={styles.input}
               autoFocus
             />
-            {error && <p className={styles.error}>{error}</p>}
-            <div className={styles.buttons}>
-              <button onClick={handleNext} className={styles.buttonPrimary}>
-                Next →
-              </button>
-            </div>
           </div>
-        ) : (
-          <div className={styles.step}>
-            <label className={styles.label}>FreeCode Settings Folder</label>
-            <p className={styles.description}>Where to store settings, sessions, and project data</p>
-            <div className={styles.folderInputGroup}>
+
+          <div className={styles.inputGroup}>
+            <label className={styles.label}>Settings Folder</label>
+            <p className={styles.description}>
+              Where FreeCode stores your config and session history.
+            </p>
+            <div className={styles.folderRow}>
               <input
                 type="text"
                 value={settingsFolder}
-                onChange={(e) => {
-                  setSettingsFolder(e.target.value);
-                  setError("");
-                }}
-                placeholder="e.g., C:\Users\YourName\freecode"
+                onChange={(e) => setSettingsFolder(e.target.value)}
+                placeholder="~/.freecode"
                 className={styles.input}
-                autoFocus
               />
-              <button onClick={handleFolderBrowse} className={styles.buttonBrowse} title="Browse for folder">
-                📁
-              </button>
-            </div>
-            {error && <p className={styles.error}>{error}</p>}
-            <div className={styles.buttons}>
-              <button onClick={() => setStep(1)} className={styles.buttonSecondary}>
-                ← Back
-              </button>
-              <button onClick={handleComplete} className={styles.buttonPrimary}>
-                Complete
-              </button>
+              {onBrowse && (
+                <button
+                  onClick={handleBrowse}
+                  disabled={browsing}
+                  className={styles.browseBtn}
+                  type="button"
+                >
+                  {browsing ? "…" : "Browse"}
+                </button>
+              )}
             </div>
           </div>
-        )}
+
+          {error && <p className={styles.error}>{error}</p>}
+
+          <div className={styles.onboardingFooter}>
+            <button onClick={handleComplete} className={styles.buttonPrimary}>
+              Get Started →
+            </button>
+            <p className={styles.footerNote}>
+              Config will be saved to {settingsFolder}/freecode.json
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -10,13 +10,19 @@ interface ConfigRequest {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ConfigRequest;
-    const { api_key, settings_folder } = body;
+    let { api_key, settings_folder } = body;
 
-    if (!api_key || !settings_folder) {
+    if (!api_key) {
       return NextResponse.json(
-        { error: "api_key and settings_folder are required" },
+        { error: "api_key is required" },
         { status: 400 }
       );
+    }
+
+    if (!settings_folder) {
+      // Default to ~/.freecode
+      const home = process.env.USERPROFILE || process.env.HOME || "";
+      settings_folder = path.join(home, ".freecode");
     }
 
     // Validate settings folder exists

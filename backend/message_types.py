@@ -13,6 +13,7 @@ class MessageType(str, Enum):
     CANCEL = "cancel"
     PING = "ping"
     PICK_DIR = "pick_dir"
+    PICK_FOLDER = "pick_folder"
     LIST_SESSIONS = "list_sessions"
 
     # Server → Client
@@ -23,6 +24,7 @@ class MessageType(str, Enum):
     SYSTEM = "system"
     DONE = "done"
     ERROR = "error"
+    FOLDER_PICKED = "folder_picked"
 
 
 @dataclass

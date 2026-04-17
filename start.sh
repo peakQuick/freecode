@@ -5,6 +5,10 @@ echo ""
 echo "====== FreeCode ======"
 echo ""
 
+# ── Ports (non-default to avoid conflicts) ─────────────────────────────────
+FC_BACKEND_PORT=47820
+FC_FRONTEND_PORT=47821
+
 PYTHON=$(command -v python3 || command -v python)
 [ -z "$PYTHON" ] && echo "ERROR: Python 3 not found." && exit 1
 command -v node &>/dev/null || { echo "ERROR: Node.js not found."; exit 1; }
@@ -21,14 +25,24 @@ fi
 
 if ! pip show websockets &>/dev/null; then
     echo "[setup] Installing Python dependencies..."
-    pip install -r requirements.txt || exit 1
+    pip install -q -r requirements.txt || exit 1
 fi
 
 if [ ! -d frontend/node_modules ]; then
     echo "[setup] Installing Node dependencies..."
-    cd frontend && npm install || exit 1
+    cd frontend && npm install --silent >/dev/null 2>&1 || exit 1
     cd ..
 fi
+
+# Write .env.local so NEXT_PUBLIC vars are baked into the production build
+cat > frontend/.env.local <<EOF
+NEXT_PUBLIC_BACKEND_URL=ws://localhost:${FC_BACKEND_PORT}
+NEXT_PUBLIC_FRONTEND_PORT=${FC_FRONTEND_PORT}
+EOF
+
+# Cleanup any previous instances on our ports
+fuser -k ${FC_BACKEND_PORT}/tcp 2>/dev/null || true
+fuser -k ${FC_FRONTEND_PORT}/tcp 2>/dev/null || true
 
 cleanup() {
     echo ""; echo "Stopping FreeCode..."
@@ -37,16 +51,23 @@ cleanup() {
 }
 trap cleanup SIGINT SIGTERM
 
+# Create logs directory
+mkdir -p logs
+
 echo "Starting FreeCode..."
-$PYTHON -m backend.server &
+
+export FC_BACKEND_PORT
+$PYTHON -m backend.server > logs/backend.log 2>&1 &
 BACKEND_PID=$!
 sleep 2
-(cd frontend && npm run dev) &
+
+(cd frontend && npm start -- -p ${FC_FRONTEND_PORT}) > ../logs/frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 echo ""
-echo "  Frontend:  http://localhost:3000"
-echo "  Backend:   ws://localhost:8000"
+echo "  Frontend:  http://localhost:${FC_FRONTEND_PORT}"
+echo "  Backend:   ws://localhost:${FC_BACKEND_PORT}"
+echo "  Logs:      logs/backend.log, logs/frontend.log"
 echo ""
 echo "Press Ctrl+C to stop"
 echo ""

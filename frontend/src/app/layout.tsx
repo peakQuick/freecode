@@ -15,7 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body style={{ paddingTop: '32px' }}>
+        <TitleBar />
         {children}
       </body>
     </html>

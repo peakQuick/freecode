@@ -1,5 +1,6 @@
 # Environment — never commit real keys
 .env
+.env.local
 !.env.example
 
 # Python
@@ -17,9 +18,11 @@ venv/
 # Runtime state — use freecode.example.json as template
 freecode.json
 !freecode.example.json
+freecode.pids
 dashboard.log
 dashboard.lock
 *.lock
+*.err
 
 # Session data — per-project, never commit
 .freecode/
@@ -36,3 +39,6 @@ frontend/next-env.d.ts
 Thumbs.db
 *.pem
 repomix-output.xml
+backend.log
+build.log
+frontend.log

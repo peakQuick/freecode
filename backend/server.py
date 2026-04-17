@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 from pathlib import Path
 import logging
 from datetime import datetime
@@ -133,22 +134,27 @@ API_KEY = _cfg.get("api_key")
 MODEL = _cfg.get("model", "gemma-4-26b-a4b-it")
 THINKING = _cfg.get("thinking", True)
 WORKING_DIR = _cfg.get("working_dir", ".")
-PORT = int(_cfg.get("backend_port", 8000))
-HOST = _cfg.get("backend_host", "localhost")
+PORT = int(os.environ.get("FC_BACKEND_PORT") or _cfg.get("backend_port", 47820))
+HOST = os.environ.get("FC_BACKEND_HOST") or _cfg.get("backend_host", "localhost")
 
 
 async def pick_directory_async():
     """Open a modern Windows folder picker and return the path."""
     ps_cmd = """
     Add-Type -AssemblyName System.Windows.Forms
-    $f = New-Object System.Windows.Forms.OpenFileDialog
-    $f.ValidateNames = $false
-    $f.CheckFileExists = $false
-    $f.CheckPathExists = $true
-    $f.FileName = "Select Folder"
-    if($f.ShowDialog() -eq "OK"){
-        (Split-Path -Parent $f.FileName)
+    $owner = New-Object System.Windows.Forms.Form
+    $owner.TopMost = $true
+    $owner.WindowState = 'Minimized'
+    $owner.ShowInTaskbar = $false
+    $owner.Show()
+    $owner.Hide()
+    $f = New-Object System.Windows.Forms.FolderBrowserDialog
+    $f.Description = "Select folder for FreeCode"
+    $f.ShowNewFolderButton = $true
+    if($f.ShowDialog($owner) -eq "OK"){
+        $f.SelectedPath
     }
+    $owner.Dispose()
     """
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -169,10 +175,10 @@ async def pick_directory_async():
 class AgentSession:
     """Manages a single agent session with its own conversation history."""
 
-    def __init__(self, session_id: str, working_dir: str = None):
+    def __init__(self, session_id: str, working_dir: str = None, api_key: str = None):
         self.session_id = session_id
         self.agent = Agent(
-            api_key=API_KEY,
+            api_key=api_key or API_KEY,
             model=MODEL,
             working_dir=working_dir or WORKING_DIR,
             enable_thinking=THINKING,
@@ -215,7 +221,9 @@ def _get_or_create_session(session_id: str, working_dir: str = None) -> AgentSes
         logger.info(f"Evicting oldest session: {oldest}")
         del sessions[oldest]
 
-    session = AgentSession(session_id, working_dir=working_dir)
+    fresh_cfg = _load_config()
+    fresh_api_key = fresh_cfg.get("api_key") or API_KEY
+    session = AgentSession(session_id, working_dir=working_dir, api_key=fresh_api_key)
     # Restore history from disk if available
     if working_dir:
         saved = load_session_from_disk(working_dir, session_id)
@@ -255,6 +263,13 @@ async def handle_client(websocket):
         async for raw_message in websocket:
             try:
                 data = json.loads(raw_message)
+
+                # Handle lightweight messages before session creation
+                if data.get("type") == "pick_folder":
+                    path = await pick_directory_async()
+                    await websocket.send(json.dumps({"type": "folder_picked", "path": path or ""}))
+                    continue
+
                 msg = ClientMessage.from_json(data)
 
                 # Resolve session from client-provided session_id
@@ -294,6 +309,11 @@ async def handle_client(websocket):
                     if session and session.active:
                         logger.info(f"[{session_id}] Cancel requested")
                         await send_system(websocket, "Cancellation not yet implemented")
+
+                elif msg.type == MessageType.PICK_FOLDER:
+                    logger.info(f"[{session_id}] Settings folder picker requested")
+                    path = await pick_directory_async()
+                    await websocket.send(json.dumps({"type": "folder_picked", "path": path or ""}))
 
                 elif msg.type == MessageType.PICK_DIR:
                     logger.info(f"[{session_id}] Directory picker requested")
